@@ -1,34 +1,13 @@
-FROM python:3.11-slim
+FROM dailyco/pipecat-base:latest-py3.12
 
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    libxcb-cursor0 \
-    libxcb-shape0 \
-    libxcb-xfixes0 \
-    libxcb-icccm4 \
-    libxcb-keysyms1 \
-    libxcb-randr0 \
-    libxcb-render-util0 \
-    libxcb-xinerama0 \
-    libxcb1 \
-    && rm -rf /var/lib/apt/lists/*
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
 
-# Instalar uv
-RUN pip install uv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
 
-WORKDIR /app
-
-# Copiar dependencias
-COPY pyproject.toml uv.lock ./
-
-# Instalar dependencias Python
-RUN uv sync --locked --no-dev
-
-# Copiar código
 COPY . .
 
 EXPOSE 7860
