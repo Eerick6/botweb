@@ -1,38 +1,45 @@
-# Imagen base compatible con Railway
+# Imagen base
 FROM python:3.11-slim
 
-# Evita problemas de logs y buffers
+# Variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema necesarias
+# Dependencias del sistema (audio + build)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     git \
     build-essential \
+    libxcb-cursor0 \
+    libxcb-shape0 \
+    libxcb-xfixes0 \
+    libxcb-icccm4 \
+    libxcb-keysyms1 \
+    libxcb-randr0 \
+    libxcb-render-util0 \
+    libxcb-xinerama0 \
+    libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar uv (gestor de dependencias rápido)
+# Instalar uv
 RUN pip install --no-cache-dir uv
 
-# Copiar archivos de dependencias primero (cache Docker)
+# Copiar dependencias (cache eficiente)
 COPY pyproject.toml uv.lock ./
 
-# Instalar dependencias del proyecto
-RUN uv sync --locked --no-dev
+# Instalar deps en el sistema (CRÍTICO)
+RUN uv sync --locked --no-dev --system
 
-# Copiar el resto del código
+# Copiar código
 COPY . .
 
-# Puerto requerido por Railway
+# Puerto Railway
+ENV PORT=7860
 EXPOSE 7860
 
-# Variable de puerto (Railway la inyecta automáticamente)
-ENV PORT=7860
-
-# Comando de inicio
-CMD ["uv", "run", "python", "bot.py"]
+# Start
+CMD ["python", "bot.py"]
