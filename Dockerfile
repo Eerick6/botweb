@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Directorio de trabajo
 WORKDIR /app
 
-# Dependencias del sistema (audio + build)
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
@@ -28,18 +28,18 @@ RUN apt-get update && apt-get install -y \
 # Instalar uv
 RUN pip install --no-cache-dir uv
 
-# Copiar dependencias (cache eficiente)
-COPY pyproject.toml uv.lock ./
+# Copiar solo pyproject (NO uv.lock)
+COPY pyproject.toml ./
 
-# Instalar deps en el sistema (CRÍTICO)
-RUN uv sync --locked --no-dev --system
+# Instalar dependencias SIN lock (clave para evitar error)
+RUN uv sync --no-dev --system
 
-# Copiar código
+# Copiar el resto del proyecto
 COPY . .
 
-# Puerto Railway
+# Puerto para Railway
 ENV PORT=7860
 EXPOSE 7860
 
-# Start
+# Comando de inicio
 CMD ["python", "bot.py"]

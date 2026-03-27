@@ -198,3 +198,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# UV
+uv.lock
